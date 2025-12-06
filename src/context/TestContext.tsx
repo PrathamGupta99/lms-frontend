@@ -20,7 +20,7 @@ type TestState = {
 
 type TestContextType = TestState & {
   initFromUniqueUrl: (uniqueURL: string) => Promise<{ testId: string; name: string }>;
-  startTest: (testId: string) => Promise<void>;
+  startTest: (testId: string) => Promise<{ sessionId: string; testId: string } | void>;
   submitAnswer: (questionId: string, selectedAnswerIndex: number) => Promise<void>;
   reset: () => void;
 };
@@ -75,6 +75,7 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
         status: 'in-progress',
         summary: null,
       });
+      return { sessionId: data.sessionId, testId: data.testId };
     },
     [api, token, isNormalUser],
   );

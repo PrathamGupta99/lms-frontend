@@ -317,3 +317,7 @@ a {
     justify-content: center;
   }
 }
+
+.options { display: grid; gap: 12px; }
+
+.result-row { display: grid; grid-template-columns: auto auto auto auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-2); }
