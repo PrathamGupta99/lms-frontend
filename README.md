@@ -13,3 +13,9 @@ Next.js + TypeScript client for the adaptive testing LMS, using React Context fo
 - `npm run build` — build for production
 - `npm run start` — run production server
 - `npm run lint` — lint the codebase
+- `npm run format` — prettier format
+
+## Docker
+- Build: `docker build -t lms-frontend .`
+- Run: `docker run --env-file .env -p 3000:3000 lms-frontend`
+- Compose: `docker compose up --build` (uses `docker-compose.yml`)
