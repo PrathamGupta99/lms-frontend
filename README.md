@@ -1,3 +1,15 @@
 # LMS Frontend
 
-Next.js + TypeScript client for the adaptive testing LMS, using React Context for state. This repository is scoped for frontend-only work and will be expanded ticket-by-ticket. See root docs for full requirements; this README will be updated as features land.
+Next.js + TypeScript client for the adaptive testing LMS, using React Context for state. This repository is scoped for frontend-only work and will be expanded ticket-by-ticket.
+
+## Quick start
+1. Install dependencies: `npm install`
+2. Run dev server: `npm run dev` (defaults to http://localhost:3000)
+3. Build for production: `npm run build`
+4. Start production build: `npm run start`
+
+## Scripts
+- `npm run dev` — start Next.js dev server
+- `npm run build` — build for production
+- `npm run start` — run production server
+- `npm run lint` — lint the codebase
