@@ -17,7 +17,7 @@ type AuthState = {
 
 type AuthContextType = AuthState & {
   registerAdmin: (payload: { email: string; password: string; name: string }) => Promise<void>;
-  login: (payload: { email: string; password: string }) => Promise<void>;
+  login: (payload: { email: string; password: string }) => Promise<{ user: User; token: string }>;
   logout: () => void;
   initialize: () => void;
 };
@@ -69,6 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = useCallback(async (payload: { email: string; password: string }) => {
     const data = await postJson<{ user: User; token: string }>(`${apiBase}/auth/login`, payload);
     persist(data.user, data.token);
+    return data;
   }, [persist]);
 
   const logout = useCallback(() => {

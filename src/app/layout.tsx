@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import { AppProviders } from '../context';
+import { HeaderActions } from '../components/HeaderActions';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,12 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <span className="dot" />
                 <Link href="/">Adaptive LMS</Link>
               </div>
-              <nav className="nav-links">
-                <Link href="/login">Login</Link>
-                <Link href="/register">Register</Link>
-                <Link href="/admin">Admin</Link>
-                <Link href="/tests">Tests</Link>
-              </nav>
+              <HeaderActions />
             </header>
             <main className="app-main">{children}</main>
             <footer className="app-footer">

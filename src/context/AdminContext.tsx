@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { useApiClient } from '../lib/apiClient';
 import { useAuth } from './AuthContext';
 
 type User = { id: string; email: string; name: string; role: 'admin' | 'user' };
@@ -24,21 +25,16 @@ type AdminContextType = {
 };
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
-const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-
-const getAuthHeaders = (token: string | null) => (token ? { Authorization: `Bearer ${token}` } : undefined);
-
 export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
-  const { token } = useAuth();
+  const { isAdmin } = useAuth();
+  const api = useApiClient();
   const [users, setUsers] = useState<User[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [tests, setTests] = useState<Test[]>([]);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
 
   const fetchUsers = useCallback(async () => {
-    const res = await fetch(`${apiBase}/admin/users`, { headers: { ...getAuthHeaders(token) } });
-    if (!res.ok) throw new Error('Failed to fetch users');
-    const data = await res.json();
+    const data = await api.get<any[]>('/admin/users');
     setUsers(
       (data as any[]).map((u) => ({
         id: u.id || u._id,
@@ -47,50 +43,34 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         role: u.role,
       })),
     );
-  }, [token]);
+  }, [api]);
 
   const createUser = useCallback(
     async (payload: { email: string; password: string; name: string; role: 'admin' | 'user' }) => {
-      const res = await fetch(`${apiBase}/admin/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Failed to create user');
+      await api.post('/admin/users', payload);
       await fetchUsers();
     },
-    [token, fetchUsers],
+    [api, fetchUsers],
   );
 
   const updateUser = useCallback(
     async (id: string, payload: Partial<Omit<User, 'id' | 'email'>> & { password?: string }) => {
-      const res = await fetch(`${apiBase}/admin/users/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Failed to update user');
+      await api.put(`/admin/users/${id}`, payload);
       await fetchUsers();
     },
-    [token, fetchUsers],
+    [api, fetchUsers],
   );
 
   const deleteUser = useCallback(
     async (id: string) => {
-      const res = await fetch(`${apiBase}/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: { ...getAuthHeaders(token) },
-      });
-      if (!res.ok) throw new Error('Failed to delete user');
+      await api.del(`/admin/users/${id}`);
       await fetchUsers();
     },
-    [token, fetchUsers],
+    [api, fetchUsers],
   );
 
   const fetchQuestions = useCallback(async () => {
-    const res = await fetch(`${apiBase}/questions`, { headers: { ...getAuthHeaders(token) } });
-    if (!res.ok) throw new Error('Failed to fetch questions');
-    const data = await res.json();
+    const data = await api.get<any>('/questions');
     setQuestions(
       (data.data || data || []).map((q: any) => ({
         id: q._id || q.id,
@@ -99,7 +79,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         weight: q.weight,
       })),
     );
-  }, [token]);
+  }, [api]);
 
   const createQuestion = useCallback(
     async (payload: {
@@ -109,46 +89,30 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       difficulty: number;
       weight: number;
     }) => {
-      const res = await fetch(`${apiBase}/questions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Failed to create question');
+      await api.post('/questions', payload);
       await fetchQuestions();
     },
-    [token, fetchQuestions],
+    [api, fetchQuestions],
   );
 
   const updateQuestion = useCallback(
     async (id: string, payload: Partial<Omit<Question, 'id'>>) => {
-      const res = await fetch(`${apiBase}/questions/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders(token) },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Failed to update question');
+      await api.put(`/questions/${id}`, payload);
       await fetchQuestions();
     },
-    [token, fetchQuestions],
+    [api, fetchQuestions],
   );
 
   const deleteQuestion = useCallback(
     async (id: string) => {
-      const res = await fetch(`${apiBase}/questions/${id}`, {
-        method: 'DELETE',
-        headers: { ...getAuthHeaders(token) },
-      });
-      if (!res.ok) throw new Error('Failed to delete question');
+      await api.del(`/questions/${id}`);
       await fetchQuestions();
     },
-    [token, fetchQuestions],
+    [api, fetchQuestions],
   );
 
   const fetchTests = useCallback(async () => {
-    const res = await fetch(`${apiBase}/tests`, { headers: { ...getAuthHeaders(token) } });
-    if (!res.ok) throw new Error('Failed to fetch tests');
-    const data = await res.json();
+    const data = await api.get<any[]>('/tests');
     setTests(
       (data as any[]).map((t) => ({
         id: t._id || t.id,
@@ -157,15 +121,11 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         createdAt: t.createdAt,
       })),
     );
-  }, [token]);
+  }, [api]);
 
   const fetchTestResults = useCallback(
     async (testId: string) => {
-      const res = await fetch(`${apiBase}/tests/${testId}/results`, {
-        headers: { ...getAuthHeaders(token) },
-      });
-      if (!res.ok) throw new Error('Failed to fetch test results');
-      const data = await res.json();
+      const data = await api.get<any[]>(`/tests/${testId}/results`);
       setTestResults(
         (data as any[]).map((r) => ({
           sessionId: r.sessionId,
@@ -176,7 +136,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         })),
       );
     },
-    [token],
+    [api],
   );
 
   const value = useMemo<AdminContextType>(

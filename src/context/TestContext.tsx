@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { useApiClient } from '../lib/apiClient';
 
 type Question = {
   id: string;
@@ -26,13 +27,9 @@ type TestContextType = TestState & {
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-
-const getAuthHeaders = (token: string | null) =>
-  token ? { Authorization: `Bearer ${token}` } : undefined;
-
 export const TestProvider = ({ children }: { children: React.ReactNode }) => {
   const { token, isNormalUser } = useAuth();
+  const api = useApiClient();
   const [state, setState] = useState<TestState>({
     currentTestId: null,
     currentSessionId: null,
@@ -58,36 +55,19 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
   }, [isNormalUser, reset]);
 
   const initFromUniqueUrl = useCallback(async (uniqueURL: string) => {
-    const res = await fetch(`${apiBase}/tests/public/${uniqueURL}`);
-    if (!res.ok) {
-      throw new Error('Test not found');
-    }
-    const data = await res.json();
+    const data = await api.get<any>(`/tests/public/${uniqueURL}`);
     setState((prev) => ({ ...prev, currentTestId: data.testId }));
     return { testId: data.testId as string, name: data.name as string };
-  }, []);
+  }, [api]);
 
   const startTest = useCallback(
     async (testId: string) => {
       if (!token || !isNormalUser) {
         throw new Error('Only normal users can start tests.');
       }
-      const res = await fetch(`${apiBase}/tests/${testId}/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders(token),
-        },
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Failed to start test');
-      }
-      const data = (await res.json()) as {
-        sessionId: string;
-        testId: string;
-        question: Question;
-      };
+      const data = await api.post<{ sessionId: string; testId: string; question: Question }>(
+        `/tests/${testId}/start`,
+      );
       setState({
         currentTestId: data.testId,
         currentSessionId: data.sessionId,
@@ -96,7 +76,7 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
         summary: null,
       });
     },
-    [token, isNormalUser],
+    [api, token, isNormalUser],
   );
 
   const submitAnswer = useCallback(
@@ -104,22 +84,10 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
       if (!token || !state.currentSessionId || !state.currentTestId) {
         throw new Error('No active session');
       }
-      const res = await fetch(
-        `${apiBase}/tests/${state.currentTestId}/sessions/${state.currentSessionId}/questions/${questionId}/answer`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeaders(token),
-          },
-          body: JSON.stringify({ selectedAnswerIndex }),
-        },
+      const data = await api.post<any>(
+        `/tests/${state.currentTestId}/sessions/${state.currentSessionId}/questions/${questionId}/answer`,
+        { selectedAnswerIndex },
       );
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Failed to submit answer');
-      }
-      const data = await res.json();
       if (data.completed) {
         setState((prev) => ({
           ...prev,
@@ -135,7 +103,7 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
         }));
       }
     },
-    [state.currentSessionId, state.currentTestId, token],
+    [api, state.currentSessionId, state.currentTestId, token],
   );
 
   const value = useMemo<TestContextType>(
