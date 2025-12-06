@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 type User = { id: string; email: string; name: string; role: 'admin' | 'user' };
 type Question = { id: string; questionText: string; difficulty: number; weight: number };
 type Test = { id: string; name: string; uniqueURL: string; createdAt?: string };
+type TestPreview = { testId: string; uniqueURL: string; name: string; questions: any[] };
 type TestResult = { sessionId: string; user: User; score: number; questionsCount: number; completedAt: string };
 
 type AdminContextType = {
@@ -12,6 +13,7 @@ type AdminContextType = {
   questions: Question[];
   tests: Test[];
   testResults: TestResult[];
+  testPreview: TestPreview | null;
   fetchUsers: () => Promise<void>;
   createUser: (payload: { email: string; password: string; name: string; role: 'admin' | 'user' }) => Promise<void>;
   updateUser: (id: string, payload: Partial<Omit<User, 'id' | 'email'>> & { password?: string }) => Promise<void>;
@@ -22,6 +24,9 @@ type AdminContextType = {
   deleteQuestion: (id: string) => Promise<void>;
   fetchTests: () => Promise<void>;
   fetchTestResults: (testId: string) => Promise<void>;
+  createTest: (payload: { name: string; description?: string }) => Promise<void>;
+  updateTest: (id: string, payload: { name?: string; description?: string }) => Promise<void>;
+  fetchTestPreview: (testId: string) => Promise<void>;
 };
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -32,6 +37,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [tests, setTests] = useState<Test[]>([]);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [testPreview, setTestPreview] = useState<TestPreview | null>(null);
 
   const fetchUsers = useCallback(async () => {
     const data = await api.get<any[]>('/admin/users');
@@ -123,6 +129,22 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     );
   }, [api]);
 
+  const createTest = useCallback(
+    async (payload: { name: string; description?: string }) => {
+      await api.post('/tests', payload);
+      await fetchTests();
+    },
+    [api, fetchTests],
+  );
+
+  const updateTest = useCallback(
+    async (id: string, payload: { name?: string; description?: string }) => {
+      await api.put(`/tests/${id}`, payload);
+      await fetchTests();
+    },
+    [api, fetchTests],
+  );
+
   const fetchTestResults = useCallback(
     async (testId: string) => {
       const data = await api.get<any[]>(`/tests/${testId}/results`);
@@ -139,12 +161,26 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     [api],
   );
 
+  const fetchTestPreview = useCallback(
+    async (testId: string) => {
+      const data = await api.get<any>(`/tests/${testId}/preview`);
+      setTestPreview({
+        testId: data.testId,
+        uniqueURL: data.uniqueURL,
+        name: data.name,
+        questions: data.questions || [],
+      });
+    },
+    [api],
+  );
+
   const value = useMemo<AdminContextType>(
     () => ({
       users,
       questions,
       tests,
       testResults,
+      testPreview,
       fetchUsers,
       createUser,
       updateUser,
@@ -155,12 +191,16 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       deleteQuestion,
       fetchTests,
       fetchTestResults,
+      createTest,
+      updateTest,
+      fetchTestPreview,
     }),
     [
       users,
       questions,
       tests,
       testResults,
+      testPreview,
       fetchUsers,
       createUser,
       updateUser,
@@ -171,6 +211,9 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       deleteQuestion,
       fetchTests,
       fetchTestResults,
+      createTest,
+      updateTest,
+      fetchTestPreview,
     ],
   );
 

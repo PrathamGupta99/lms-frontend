@@ -286,6 +286,62 @@ a {
   width: 100%;
 }
 
+.admin-nav {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-nav a {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.admin-nav a:hover {
+  border-color: var(--accent);
+}
+
+.table {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 12px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: 10px;
+}
+
+.table-row.head {
+  background: var(--panel-2);
+  font-weight: 700;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 @media (max-width: 900px) {
   .app-shell {
     padding: 16px;
