@@ -57,7 +57,7 @@ export default function AdminQuestionsPage() {
         </div>
         {questions.map((q) => (
           <div key={q.id} className="table-row">
-            <span className="muted small">{q.questionText.slice(0, 60)}...</span>
+            <span className="muted small">{(q.questionText || '').slice(0, 60)}...</span>
             <span>{q.difficulty}</span>
             <span>{q.weight}</span>
             <span className="actions">

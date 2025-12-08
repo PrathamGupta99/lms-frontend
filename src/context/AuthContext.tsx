@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+"use client";
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 
 type User = {
   id: string;

@@ -19,3 +19,7 @@ Next.js + TypeScript client for the adaptive testing LMS, using React Context fo
 - Build: `docker build -t lms-frontend .`
 - Run: `docker run --env-file .env -p 3000:3000 lms-frontend`
 - Compose: `docker compose up --build` (uses `docker-compose.yml`)
+
+## Role rules (UI mirrors backend)
+- Admin: created via `/register`; can manage users/questions/tests and preview tests; cannot take tests.
+- Normal user: created by admin; can start adaptive tests via unique URLs and view results.

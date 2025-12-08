@@ -1,3 +1,4 @@
+"use client";
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useApiClient } from '../lib/apiClient';
 import { useAuth } from './AuthContext';
@@ -80,7 +81,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     setQuestions(
       (data.data || data || []).map((q: any) => ({
         id: q._id || q.id,
-        questionText: q.questionText,
+        questionText: q.questionText || q.question || '',
         difficulty: q.difficulty,
         weight: q.weight,
       })),
@@ -168,7 +169,11 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         testId: data.testId,
         uniqueURL: data.uniqueURL,
         name: data.name,
-        questions: data.questions || [],
+        questions:
+          (data.questions || []).map((q: any) => ({
+            ...q,
+            questionText: q.questionText || q.question || '',
+          })) ?? [],
       });
     },
     [api],
